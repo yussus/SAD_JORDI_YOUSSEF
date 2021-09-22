@@ -30,4 +30,13 @@ public class EditableBufferedReader extends BufferedReader{
         super(in);
         linia = new Line();
     }
-    public setRaw 
+    //https://qastack.mx/programming/1066318/how-to-read-a-single-char-from-the-console-in-java-as-the-user-types-it
+        String[] cmd = {"/bin/sh", "-c", "stty raw -echo </dev/tty"}; 
+    public void setRaw() throws IOException, InterruptedException{ 
+        Runtime.getRuntime().exec(cmd).waitFor();       
+}
+
+ public void unsetRaw() throws IOException, InterruptedException{
+        String[] cmd2 = {"/bin/sh", "-c", "stty cooked </dev/tty"};
+        Runtime.getRuntime().exec(cmd).waitFor();        
+    }
