@@ -12,7 +12,8 @@ public class EditableBufferedReader extends BufferedReader{
         static final int END = 70;
         static final int INSERT = 50;
         static final int DELETE = 51;
-        static final int CORCHETE = 91;
+        static final int CORCHETEI = 91;
+        static final int CORCHETED = 93;
         static final int TILDE = 126; //simbol ~
         static final int INTERROGANT = 63;
         static final int ENTER = 13;
@@ -31,12 +32,50 @@ public class EditableBufferedReader extends BufferedReader{
         linia = new Line();
     }
     //https://qastack.mx/programming/1066318/how-to-read-a-single-char-from-the-console-in-java-as-the-user-types-it
-        String[] cmd = {"/bin/sh", "-c", "stty raw -echo </dev/tty"}; 
     public void setRaw() throws IOException, InterruptedException{ 
+        String[] cmd = {"/bin/sh", "-c", "stty raw -echo </dev/tty"}; 
         Runtime.getRuntime().exec(cmd).waitFor();       
 }
 
- public void unsetRaw() throws IOException, InterruptedException{
+    public void unsetRaw() throws IOException, InterruptedException{
         String[] cmd2 = {"/bin/sh", "-c", "stty cooked </dev/tty"};
-        Runtime.getRuntime().exec(cmd).waitFor();        
+        Runtime.getRuntime().exec(cmd2).waitFor();        
+    }
+    public  int read() throws IOException{
+
+        int caracter = 0;
+        caracter = super.read();
+        if(caracter == ESC){
+            caracter = super.read();
+            if(caracter == CORCHETE){
+                caracter = super.read();
+                switch(caracter){
+                    case RIGHT:
+                        return SEC_RIGHT;
+
+                    case LEFT:
+                        return SEC_LEFT;
+
+                    case HOME:
+                        return SEC_HOME;
+
+                    case END:
+                        return SEC_FIN;
+
+                    case INSERT:
+                        
+
+                    case DELETE:
+
+                    default:
+                        return -1;
+
+                }
+            }
+        }else if(caracter == BACKSPACE){
+            return BACKSPACE;
+        }else{
+            return caracter;
+        }
+        return -1;
     }
