@@ -1,81 +1,138 @@
 import java.io.*;
 import java.util.*;
-public class EditableBufferedReader extends BufferedReader{
-    Line linia;
-    Console terminal;
-        int posicio, length;
-        static final int ESC = 27;
-        static final int BACKSPACE = 127;
-        static final int RIGHT = 67;
-        static final int LEFT = 68;
-        static final int HOME = 72;
-        static final int END = 70;
-        static final int INSERT = 50;
-        static final int DELETE = 51;
-        static final int CORCHETEI = 91;
-        static final int CORCHETED = 93;
-        static final int TILDE = 126; //simbol ~
-        static final int INTERROGANT = 63;
-        static final int ENTER = 13;
+public class EditableBufferedReader extends BufferedReader { // CONTROLLER
 
-        static final int SEC_BACKSPACE = 127;
-        static final int ESCAPE_SEC = 2999;
-        static final int SEC_HOME = 3000;
-        static final int SEC_RIGHT = 3001;
-        static final int SEC_LEFT = 3002;
-        static final int SEC_FIN = 3003;
-        static final int SEC_INSERT = 3004;
-        static final int SEC_DELETE = 3005;
+    private Line line;
+    private Console console;
 
-    public EditableBufferedReader(Reader in){
+    public EditableBufferedReader(Reader in) {
         super(in);
-        linia = new Line();
+        this.line = new Line(); // Model
+        this.console = new Console(); // View
+        this.line.addObserver(this.console);
     }
-    //https://qastack.mx/programming/1066318/how-to-read-a-single-char-from-the-console-in-java-as-the-user-types-it
-    public void setRaw() throws IOException, InterruptedException{ 
-        String[] cmd = {"/bin/sh", "-c", "stty raw -echo </dev/tty"}; 
-        Runtime.getRuntime().exec(cmd).waitFor();       
-}
 
-    public void unsetRaw() throws IOException, InterruptedException{
-        String[] cmd2 = {"/bin/sh", "-c", "stty cooked </dev/tty"};
-        Runtime.getRuntime().exec(cmd2).waitFor();        
+    // Metodes
+    // setRaw: passa la consola de mode cooked a mode raw.
+    public void setRaw() {
+        String[] cmd = { "/bin/sh", "-c", "stty -echo raw </dev/tty" }; // Comana per canviar la consola a mode Raw
+        Process p;
+        try {
+            p = Runtime.getRuntime().exec(cmd);
+            if (p.waitFor() == 1) {
+                p.destroy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-    public  int read() throws IOException{
 
-        int caracter = 0;
-        caracter = super.read();
-        if(caracter == ESC){
-            caracter = super.read();
-            if(caracter == CORCHETE){
-                caracter = super.read();
-                switch(caracter){
-                    case RIGHT:
-                        return SEC_RIGHT;
+    // unsetRaw: passa la consola de mode raw a mode cooked.
+    public void unsetRaw() {
+        String[] cmd = { "/bin/sh", "-c", "stty echo cooked </dev/tty" }; // Comana per canviar la consola a mode Cooked
+        Process p;
+        try {
+            p = Runtime.getRuntime().exec(cmd);
+            if (p.waitFor() == 1) {
+                p.destroy();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-                    case LEFT:
-                        return SEC_LEFT;
-
-                    case HOME:
-                        return SEC_HOME;
-
-                    case END:
-                        return SEC_FIN;
-
-                    case INSERT:
-                        
-
-                    case DELETE:
-
-                    default:
-                        return -1;
-
+    // read: llegeix el seguent caracter o la seguent tecla de cursor.
+    public int read() {
+        int numRead = 6666;
+        try {
+            int n = super.read();
+            if (n != Dictionary.ESC) { // Si entra es un caracter normal o borrar(Backspace)
+                if (n == Dictionary.BS) {
+                    numRead = Dictionary.xBS;
+                } else {
+                    numRead = n;
+                }
+            } else { // Si entra detectem que es una sequencia de ESC
+                n = super.read(); // El CSI el podem obviar i fer condicions del qe hi ha darrere de ESC+CSI
+                n = super.read();
+                switch (n) {
+                case Dictionary.DEL1:
+                    int n1 = super.read();
+                    if (n1 == Dictionary.DEL2) {
+                        numRead = Dictionary.xDEL;
+                    }
+                    break;
+                case Dictionary.INSERT1:
+                    numRead = Dictionary.xINSERT;
+                    break;
+                case Dictionary.RIGHT:
+                    numRead = Dictionary.xRIGHT;
+                    break;
+                case Dictionary.LEFT:
+                    numRead = Dictionary.xLEFT;
+                    break;
+                case Dictionary.HOME:
+                    numRead = Dictionary.xHOME;
+                    break;
+                case Dictionary.END:
+                    numRead = Dictionary.xEND;
+                    break;
+                default:
+                    System.err.println("Invalid input!!");
+                    break;
                 }
             }
-        }else if(caracter == BACKSPACE){
-            return BACKSPACE;
-        }else{
-            return caracter;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return -1;
+        return numRead;
     }
+
+    public String readLine() {
+        this.setRaw();
+        int llegit = this.read();
+        while (llegit != Dictionary.ENTER_1 && llegit != Dictionary.ENTER_2) {
+            switch (llegit) {
+            case Dictionary.xBS:
+                if (line.getPosCursor() > 0) {
+                    line.backspace();
+                }
+                break;
+            case Dictionary.xDEL:
+                if (line.getPosCursor() < line.getLength()) {
+                    line.delete();
+                }
+                break;
+            case Dictionary.xEND:
+                line.moveEnd();
+                break;
+            case Dictionary.xHOME:
+                line.moveHome();
+                break;
+            case Dictionary.xLEFT:
+                if (line.getPosCursor() != 0) {
+                    line.moveLeft();
+                }
+                break;
+            case Dictionary.xRIGHT:
+                if (line.getPosCursor() < line.getLength()) {
+                    line.moveRight();
+                }
+                break;
+            case Dictionary.xINSERT:
+                line.insertMode();
+                break;
+            default:
+                if (line.getMode()) { // Distinct mode insert
+                    line.insertChar((char) llegit);
+                } else {
+                    line.replaceChar((char) llegit);
+                }
+                break;
+            }
+            llegit = this.read();
+        }
+        this.unsetRaw();
+        return line.getLine().toString();
+    }
+}
