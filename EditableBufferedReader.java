@@ -46,9 +46,9 @@ public class EditableBufferedReader extends BufferedReader { // CONTROLLER
         int numRead = 6666;
         try {
             int n = super.read();
-            if (n != Dictionary.ESC) { // Si entra es un caracter normal o borrar(Backspace)
-                if (n == Dictionary.BS) {
-                    numRead = Dictionary.xBS;
+            if (n != Diccionari.ESC) { // Si entra es un caracter normal o borrar(Backspace)
+                if (n == Diccionari.BS) {
+                    numRead = Diccionari.xBS;
                 } else {
                     numRead = n;
                 }
@@ -56,26 +56,26 @@ public class EditableBufferedReader extends BufferedReader { // CONTROLLER
                 n = super.read(); // El CSI el podem obviar i fer condicions del qe hi ha darrere de ESC+CSI
                 n = super.read();
                 switch (n) {
-                case Dictionary.DEL1:
+                case Diccionari.DEL1:
                     int n1 = super.read();
-                    if (n1 == Dictionary.DEL2) {
-                        numRead = Dictionary.xDEL;
+                    if (n1 == Diccionari.DEL2) {
+                        numRead = Diccionari.xDEL;
                     }
                     break;
-                case Dictionary.INSERT1:
-                    numRead = Dictionary.xINSERT;
+                case Diccionari.INSERT1:
+                    numRead = Diccionari.xINSERT;
                     break;
-                case Dictionary.RIGHT:
-                    numRead = Dictionary.xRIGHT;
+                case Diccionari.RIGHT:
+                    numRead = Diccionari.xRIGHT;
                     break;
                 case Dictionary.LEFT:
-                    numRead = Dictionary.xLEFT;
+                    numRead = Diccionari.xLEFT;
                     break;
-                case Dictionary.HOME:
-                    numRead = Dictionary.xHOME;
+                case Diccionari.HOME:
+                    numRead = Diccionari.xHOME;
                     break;
-                case Dictionary.END:
-                    numRead = Dictionary.xEND;
+                case Diccionari.END:
+                    numRead = Diccionari.xEND;
                     break;
                 default:
                     System.err.println("Invalid input!!");
@@ -91,30 +91,30 @@ public class EditableBufferedReader extends BufferedReader { // CONTROLLER
     public String readLine() {
         this.setRaw();
         int llegit = this.read();
-        while (llegit != Dictionary.ENTER_1 && llegit != Dictionary.ENTER_2) {
+        while (llegit != Diccionari.ENTER_1 && llegit != Diccionari.ENTER_2) {
             switch (llegit) {
-            case Dictionary.xBS:
+            case Diccionari.xBS:
                 if (line.getPosCursor() > 0) {
                     line.backspace();
                 }
                 break;
-            case Dictionary.xDEL:
+            case Diccionari.xDEL:
                 if (line.getPosCursor() < line.getLength()) {
                     line.delete();
                 }
                 break;
-            case Dictionary.xEND:
+            case Diccionari.xEND:
                 line.moveEnd();
                 break;
-            case Dictionary.xHOME:
+            case Diccionari.xHOME:
                 line.moveHome();
                 break;
-            case Dictionary.xLEFT:
+            case Diccionari.xLEFT:
                 if (line.getPosCursor() != 0) {
                     line.moveLeft();
                 }
                 break;
-            case Dictionary.xRIGHT:
+            case Diccionari.xRIGHT:
                 if (line.getPosCursor() < line.getLength()) {
                     line.moveRight();
                 }
