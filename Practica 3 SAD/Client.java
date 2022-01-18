@@ -40,8 +40,7 @@ class Switching extends WindowAdapter { // con WindowListener tendriamos que sob
 
 	public void windowOpened(WindowEvent e) {
 		try {
-			Socket csocket = new Socket("192.168.214.15", 9999); // puerto 9999 es el del servidor que esta a la
-																	// escucha
+			Socket csocket = new Socket("192.168.214.15", 9999); // puerto 9999 es el del servidor que esta a la escucha
 			Contenedor datos = new Contenedor();
 			datos.setMensaje("connect");
 			datos.setNick(nick);
@@ -154,11 +153,9 @@ class TemplateClientFrame extends JPanel implements Runnable {
 	private HashMap<String, String> mapa;
 
 }
-
-@SuppressWarnings("serial")
-class Contenedor implements Serializable { // Serializable: para que todas las instancias que pertenezcan a esta clase
-											// sean capaces de covertirse en una serie de bytes para poder ser enviadas
-											// a traves de la red
+/*Serializable: para que todas las instancias que pertenezcan a esta clase sean capaces 
+de covertirse en una serie de bytes para poder ser enviadas a traves de la red*/
+class Contenedor implements Serializable { 
 	private String nick, ip, mensaje;
 	private ArrayList<String> Ips;
 	private HashMap<String, String> ipnombres;
